@@ -1,4 +1,4 @@
-#R Script to preprocess dataset 110 (three biomarkers)
+#R Script to preprocess the datasets
 
 library(readxl)
 library(dplyr)
@@ -52,4 +52,28 @@ for (i in 1:length(dataset_375$PATIENT_ID)) {
 summary_375 <- dataset_375 %>%
   group_by(PATIENT_ID) %>%
   summarise_all(mean, na.rm = TRUE)
-#There are a lot of values missing for some columns, like TNF-α. TO DO: pick a solution.
+
+#-----
+# Imputations and removals
+#-----
+
+#Remove variables that have more than 6% missing values from the summary  
+summary_375 <- summary_375 %>% select_if(colMeans(is.na(summary_375)) < 0.06)
+
+print(sum(summary_375[193, 8:ncol(summary_375)]))
+
+summary_375_copy <- summary_375
+
+#Remove patients with no data
+for (i in 1:length(summary_375$PATIENT_ID)) {
+  if (is.na(sum(summary_375[i, 8:ncol(summary_375)]))) {
+    summary_375 <- summary_375[-c(i),] 
+  }
+}
+
+#Mean imputation for columns with <6% missing values.
+for(i in 8:ncol(summary_375)) {
+  summary_375[ , i][is.na(summary_375[ , i])] <- mean(summary_375[ , i], na.rm = TRUE)
+}
+
+
