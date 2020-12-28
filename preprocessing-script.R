@@ -60,10 +60,6 @@ summary_375 <- dataset_375 %>%
 #Remove variables that have more than 6% missing values from the summary  
 summary_375 <- summary_375 %>% select_if(colMeans(is.na(summary_375)) < 0.06)
 
-print(sum(summary_375[193, 8:ncol(summary_375)]))
-
-summary_375_copy <- summary_375
-
 #Remove patients with no data
 for (i in 1:length(summary_375$PATIENT_ID)) {
   if (is.na(sum(summary_375[i, 8:ncol(summary_375)]))) {
