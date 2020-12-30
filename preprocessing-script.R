@@ -69,7 +69,8 @@ for (i in 1:length(summary_375$PATIENT_ID)) {
 
 #Mean imputation for columns with <6% missing values.
 for(i in 8:ncol(summary_375)) {
-  summary_375[ , i][is.na(summary_375[ , i])] <- mean(summary_375[ , i], na.rm = TRUE)
+  summary_375[is.na(summary_375[,i]), i] <- mean(summary_375[,i], na.rm = TRUE) #round does not work here
 }
 
-
+#Rounding
+rounded <- summary_375 %>% mutate(across(8:48, round, 3)) #this is rounded correctly in the dataframe but not in the csv output
