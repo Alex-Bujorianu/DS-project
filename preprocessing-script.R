@@ -60,9 +60,13 @@ summary_375 <- dataset_375 %>%
 #Remove variables that have more than 6% missing values from the summary  
 summary_375 <- summary_375 %>% select_if(colMeans(is.na(summary_375)) < 0.06)
 
-#Remove patients with no data
+missing_patients <- as_tibble(data.frame(matrix(nrow=0,ncol=length(colnames(summary_375)))))
+colnames(missing_patients) <- colnames(summary_375)
+
+#Remove patients with no data and add it to the other database
 for (i in 1:length(summary_375$PATIENT_ID)) {
   if (is.na(sum(summary_375[i, 8:ncol(summary_375)]))) {
+    missing_patients %>% add_row(summary_375[i,])
     summary_375 <- summary_375[-c(i),] 
   }
 }
