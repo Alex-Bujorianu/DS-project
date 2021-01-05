@@ -2,6 +2,7 @@
 
 library(readxl)
 library(dplyr)
+library(zoo)
 
 dataset_110 <- read_excel("Datasets/time_series_test_110_preprocess_en.xlsx")
 dataset_110_copy <- dataset_110
@@ -36,6 +37,8 @@ summary_110 <- dataset_110 %>%
             C_protein = mean (C_protein, na.rm = TRUE)
   )
 
+
+
 #--------------
 # Second dataset
 #--------------
@@ -52,6 +55,11 @@ for (i in 1:length(dataset_375$PATIENT_ID)) {
 summary_375 <- dataset_375 %>%
   group_by(PATIENT_ID) %>%
   summarise_all(mean, na.rm = TRUE)
+
+# Alternative dataset with last value instead of mean
+summary_375_not-mean <- dataset_375 %>%
+  group_by(PATIENT_ID) %>%
+  summarise_all(na.locf, na.rm = TRUE)
 
 #-----
 # Imputations and removals
