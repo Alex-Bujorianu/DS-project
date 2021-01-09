@@ -1,8 +1,15 @@
 #R Script to preprocess the datasets
 
+library(conflicted)
 library(readxl)
+library(plyr)
 library(dplyr)
 library(tidyr)
+
+#Avoid library conflicts
+conflict_prefer("rename", "dplyr")
+conflict_prefer("summarise", "dplyr")
+conflict_prefer("mutate", "dplyr")
 
 dataset_110 <- read_excel("Datasets/time_series_test_110_preprocess_en.xlsx")
 dataset_110_copy <- dataset_110
@@ -58,9 +65,14 @@ summary_375 <- dataset_375 %>%
 
 # Alternative dataset with last value instead of mean
 summary_375_last <- dataset_375 %>%
-  pivot_longer(cols=-c(RE_DATE, `Admission time`, `Discharge time`), 
-               names_to="variables", 
-               values_to="value")
+  # pivot_longer(cols=-c(PATIENT_ID, RE_DATE, `Admission time`, `Discharge time`),
+  #              names_to="variables",
+  #              values_to="value",
+  #              values_drop_na = TRUE) %>%
+  group_by(PATIENT_ID) %>%
+  select(PATIENT_ID, hemoglobin) %>%
+  mutate(n_hemoglobin = plyr::count(hemoglobin))
+#add_count(sort = TRUE)
 
 #-----
 # Imputations and removals
