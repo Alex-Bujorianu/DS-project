@@ -2,7 +2,7 @@
 
 library(readxl)
 library(dplyr)
-library(zoo)
+library(tidyr)
 
 dataset_110 <- read_excel("Datasets/time_series_test_110_preprocess_en.xlsx")
 dataset_110_copy <- dataset_110
@@ -57,9 +57,10 @@ summary_375 <- dataset_375 %>%
   summarise_all(mean, na.rm = TRUE)
 
 # Alternative dataset with last value instead of mean
-summary_375_not-mean <- dataset_375 %>%
-  group_by(PATIENT_ID) %>%
-  summarise_all(na.locf, na.rm = TRUE)
+summary_375_last <- dataset_375 %>%
+  pivot_longer(cols=-c(RE_DATE, `Admission time`, `Discharge time`), 
+               names_to="variables", 
+               values_to="value")
 
 #-----
 # Imputations and removals
