@@ -1,15 +1,8 @@
 #R Script to preprocess the datasets
 
-library(conflicted)
 library(readxl)
-library(plyr)
 library(dplyr)
 library(tidyr)
-
-#Avoid library conflicts
-conflict_prefer("rename", "dplyr")
-conflict_prefer("summarise", "dplyr")
-conflict_prefer("mutate", "dplyr")
 
 dataset_110 <- read_excel("Datasets/time_series_test_110_preprocess_en.xlsx")
 dataset_110_copy <- dataset_110
@@ -44,8 +37,6 @@ summary_110 <- dataset_110 %>%
             C_protein = mean (C_protein, na.rm = TRUE)
   )
 
-
-
 #--------------
 # Second dataset
 #--------------
@@ -65,14 +56,16 @@ summary_375 <- dataset_375 %>%
 
 # Alternative dataset with last value instead of mean
 summary_375_last <- dataset_375 %>%
-  # pivot_longer(cols=-c(PATIENT_ID, RE_DATE, `Admission time`, `Discharge time`),
-  #              names_to="variables",
-  #              values_to="value",
-  #              values_drop_na = TRUE) %>%
-  group_by(PATIENT_ID) %>%
-  select(PATIENT_ID, hemoglobin) %>%
-  mutate(n_hemoglobin = plyr::count(hemoglobin))
-#add_count(sort = TRUE)
+  pivot_longer(cols=-c(PATIENT_ID, RE_DATE, `Admission time`, `Discharge time`, gender, outcome, age),
+               names_to="variables",
+               values_to="value",
+               values_drop_na = TRUE) %>%
+  group_by(PATIENT_ID, variables) %>%
+  mutate(n = row_number()) %>%
+  dplyr::filter(n == max(n)) %>%
+  select(-n, -RE_DATE) %>%
+  ungroup() %>%
+  pivot_wider(values_from = value, names_from = variables)
 
 #-----
 # Imputations and removals
@@ -80,22 +73,28 @@ summary_375_last <- dataset_375 %>%
 
 #Remove variables that have more than 6% missing values from the summary  
 summary_375 <- summary_375 %>% select_if(colMeans(is.na(summary_375)) < 0.06)
+summary_375_last <- summary_375_last %>% select_if(colMeans(is.na(summary_375_last)) < 0.06)
+summary_375_last %>% select_if(colMeans(is.na(summary_375_last)) < 0.06)
 
-missing_patients <- as_tibble(data.frame(matrix(nrow=0,ncol=length(colnames(summary_375)))))
-colnames(missing_patients) <- colnames(summary_375)
+# missing_patients <- as_tibble(data.frame(matrix(nrow=0,ncol=length(colnames(summary_375)))))
+# colnames(missing_patients) <- colnames(summary_375)
 
 #Remove patients with no data and add it to the other database
-for (i in 1:length(summary_375$PATIENT_ID)) {
-  if (is.na(sum(summary_375[i, 8:ncol(summary_375)]))) {
-    missing_patients %>% add_row(summary_375[i,])
-    summary_375 <- summary_375[-c(i),] 
-  }
-}
+# for (i in 1:length(summary_375$PATIENT_ID)) {
+#   if (is.na(sum(summary_375[i, 8:ncol(summary_375)]))) {
+#     missing_patients %>% add_row(summary_375[i,])
+#     summary_375 <- summary_375[-c(i),] 
+#   }
+# }
 
 #Mean imputation for columns with <6% missing values.
 for(i in 8:ncol(summary_375)) {
-  summary_375[is.na(summary_375[,i]), i] <- mean(summary_375[,i], na.rm = TRUE) #round does not work here
+  summary_375[is.na(summary_375[,i]), i] <- colMeans(summary_375[,i], na.rm = TRUE) #round does not work here
+}
+for(i in 7:ncol(summary_375_last)) {
+  summary_375_last[is.na(summary_375_last[,i]), i] <- colMeans(summary_375_last[,i], na.rm = TRUE) #round does not work here
 }
 
 #Rounding
 rounded <- summary_375 %>% mutate(across(8:48, round, 3)) #this is rounded correctly in the dataframe but not in the csv output
+summary_375_last <- summary_375_last %>% mutate(across(7:58, round, 3))
