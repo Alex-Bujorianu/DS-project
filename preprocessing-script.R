@@ -72,20 +72,26 @@ summary_375_last <- dataset_375 %>%
 #-----
 
 #Remove variables that have more than 6% missing values from the summary  
+#For some reason summary_375 is getting a lot more variables removed than summary_375_last
 summary_375 <- summary_375 %>% select_if(colMeans(is.na(summary_375)) < 0.06)
 summary_375_last <- summary_375_last %>% select_if(colMeans(is.na(summary_375_last)) < 0.06)
-summary_375_last %>% select_if(colMeans(is.na(summary_375_last)) < 0.06)
+#summary_375_last %>% select_if(colMeans(is.na(summary_375_last)) < 0.06)
 
 # missing_patients <- as_tibble(data.frame(matrix(nrow=0,ncol=length(colnames(summary_375)))))
 # colnames(missing_patients) <- colnames(summary_375)
+#Why not just make a copy of summary 375 with 0 rows?
+missing_patients <- summary_375[0,]
+
 
 #Remove patients with no data and add it to the other database
-# for (i in 1:length(summary_375$PATIENT_ID)) {
-#   if (is.na(sum(summary_375[i, 8:ncol(summary_375)]))) {
-#     missing_patients %>% add_row(summary_375[i,])
-#     summary_375 <- summary_375[-c(i),] 
-#   }
-# }
+for (i in 1:nrow(summary_375)) {
+  if (all(is.na(summary_375[i, 8:ncol(summary_375)]))) {
+    missing_patients <- missing_patients %>% add_row(as_tibble(summary_375[i,])) #you have to assign; add_row is COW
+    summary_375 <- summary_375[-c(i),]
+  }
+}
+
+#which(is.na(missing_patients$))
 
 #Mean imputation for columns with <6% missing values.
 for(i in 8:ncol(summary_375)) {
