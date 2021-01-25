@@ -1,7 +1,4 @@
 TO DO:
-1. Make new dataset named last\_observations\_375 and use it in the models. See if it makes any difference compared to the means.
-<!--Evangelos add your stuff here-->
-2. Addition of an SVM model 
-
-For the report:
-+ Add a section named “Previous work” detailing what other approaches researchers have used. 
+1. Add some more visualisations. E.g. a bar chart showing how much extra information is gained by adding more variables (for the PCA analysis). Elena Mocanu mentioned that visualisations are likely to improve the grade.
+2. Add more to results section about e.g F1 score.
+3. Nicer formatting + captions.
